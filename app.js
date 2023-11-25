@@ -3,17 +3,35 @@ const app = express();
 const bodyParser = require('body-parser');
 const morgan = require('morgan');
 const mongose = require('mongoose');
-const {Product} = require('./models/product');
-require('dotenv/config');
+const cors = require('cors');
 
-const api = process.env.API_URL;
-const productsRouter = require('./routers/product')
+require('dotenv/config');
+const authJwt = require('./helpers/jwt'); 
+
+
+
+app.use(cors());
+app.options('*', cors())
+
+
+
 //midleware
 app.use(bodyParser.json());
 app.use(morgan('tiny'));
+app.use(authJwt());
 
 //routers
+const categoriesRoutes = require('./routers/category');
+const productsRouter = require('./routers/product');
+const usersRoutes = require('./routers/user');
+const ordersRoutes = require('./routers/order');
+
+const api = process.env.API_URL;
+
+app.use(`${api}/categories`, categoriesRoutes);
 app.use(`${api}/products`, productsRouter);
+app.use(`${api}/users`, usersRoutes);
+app.use(`${api}/orders`, ordersRoutes);
 
 
 
@@ -30,30 +48,6 @@ mongose.connect(process.env.CONNECTION_STRING, {
     console.log(err);
 })
 
-// app.get(`${api}/products`,async (req,res) =>{
-//     const productList = await Product.find();
-
-//     if(!productList){
-//         res.status(500).json({success: false})
-//     }
-//     res.send(productList);
-// })
-// app.post(`${api}/products`, (req,res)=>{
-//     const product = new Product({
-//         name: req.body.name,
-//         image: req.body.image,
-//         countInStock: req.body.countInStock
-//     })
-
-//     product.save().then((createdProduct=>{
-//         res.status(201).json(createdProduct)
-//     })).catch((err)=>{
-//         res.status(500).json({
-//             error: err,
-//             success: false
-//         })
-//     })
-// })
 
 app.listen(3000, ()=>{
 
